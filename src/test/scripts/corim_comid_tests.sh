@@ -64,7 +64,24 @@ eval $rim verify -r corim_comid --in $dataDir/tmp/corim-test-signed2.cbor \
   -p $dataDir/certs/COMP_OEM1_rim_signer_ecc_512_sha384.pem >>/dev/null
 rim_expected_pass_status $? "CoRim TEST 8: CoRim verify (signed)"
 
-# TODO: Corim with Coswids
+# signing a CoRIM with CoSWID
+echo "CoRim TEST 9: Sign a CoRIM (with CoSWID) using a valid private key"
+eval $rim sign -r corim_comid --in $dataDir/corim/corim_coswid_1.cbor \
+  --out $dataDir/tmp/corim-coswid-signed1.cose -p $dataDir/certs/COMP_OEM1_rim_signer_ecc_512_sha384.pem -k \
+  $dataDir/keys/COMP_OEM1_rim_signer_ecc_512_sha384.key >>/dev/null
+rim_expected_pass_status $? "CoRim TEST 9: CoRim sign with CoSWID"
+
+# verify signed CoRIM with CoSWID
+echo "CoRim TEST 10: Verify a signed CoRIM (with CoSWID)"
+eval $rim verify -r corim_comid --in $dataDir/tmp/corim-coswid-signed1.cose \
+  -p $dataDir/certs/COMP_OEM1_rim_signer_ecc_512_sha384.pem >>/dev/null
+rim_expected_pass_status $? "CoRim TEST 10: CoRim verify with CoSWID"
+
+# print signed CoRIM with CoSWID
+echo "CoRim TEST 11: Print and validate the format of a signed CoRIM (with CoSWID)"
+eval $rim print -r corim_comid --in $dataDir/tmp/corim-coswid-signed1.cose >>/dev/null
+rim_expected_pass_status $? "CoRim TEST 11: CoRim print with CoSWID"
+
 # TODO: Corim with CoTLs
 
 rm -rf $dataDir/tmp
