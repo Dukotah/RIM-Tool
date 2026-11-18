@@ -1,0 +1,47 @@
+name: Veraison CoRIM Interop
+
+# Fork-only: round-trips CoRIMs between RIM Tool and the Veraison reference
+# tooling (cocli + github.com/veraison/corim). See src/test/interop.
+on:
+  push:
+    branches: ['lane/**']
+  workflow_dispatch:
+
+jobs:
+  Veraison_Interop:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '25'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: src/test/interop/go.mod
+        cache-dependency-path: src/test/interop/go.sum
+
+    - name: Install cocli and corim-interop
+      run: |
+        go install github.com/veraison/cocli@499dc19e9dc1fb68e1e38ecf8ca8a30bc0fc0353
+        cd src/test/interop && go vet ./... && go build -o "$(go env GOPATH)/bin/corim-interop" ./corim-interop
+        echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+    - name: Run Gradle Build
+      run: ./gradlew build
+
+    - name: Run System Tests
+      run: ./src/test/scripts/run_all_tests.sh
+
+    - name: Run Veraison Interop Tests
+      run: ./src/test/interop/veraison_interop_tests.sh
